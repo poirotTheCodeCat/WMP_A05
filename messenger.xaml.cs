@@ -11,6 +11,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Net.Sockets;
+
 
 namespace WMP_A05
 {
@@ -20,7 +22,15 @@ namespace WMP_A05
     public partial class messenger : Window
     {
         private string user;
-        public string User
+        private TcpClient client;
+
+        public TcpClient Client         // accessor and modifier of client data member
+        {
+            get { return client; }
+            set { client = value; }
+        }
+
+        public string User                 // accessor and modifier of user data member
         {
             get { return user; }        // gets the value of user
             set { user = value; }       // sets the value of user
@@ -31,6 +41,27 @@ namespace WMP_A05
         }
 
         public void Send_Click(object sender, RoutedEventArgs arg)
+        {
+
+        }
+
+        /*
+         * Function : connect_Button()
+         * Parameters : object sender, RoutedEventArgs arg
+         * Description :  This connects the client to the server and reacts to the button press
+         * Returns : Nothing
+         */
+        public void connect_Button(object sender, RoutedEventArgs arg)
+        {
+
+        }
+        /*
+         * Function : disconnect_Button()
+         * Parameters : object sender, RoutedEventArgs arg
+         * Description :  This disconnects the client from the server
+         * Returns : Nothing
+         */
+        public void disconnect_Button(object sender, RoutedEventArgs arg)
         {
 
         }
