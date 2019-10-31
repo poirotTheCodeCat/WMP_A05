@@ -78,9 +78,9 @@ namespace chat_server
             while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 ) // iterate through read stream
             {
                 data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
-                sendMessages(client, data);
             }
-
+            Console.WriteLine("{0}", data);
+            // sendMessages(client, data);
         }
 
         /*

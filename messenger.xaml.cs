@@ -21,6 +21,7 @@ namespace WMP_A05
     /// </summary>
     public partial class messenger : Window
     {
+
         private static string user;
         private static TcpClient chatClient;
         private static Thread serverMessage;
@@ -56,12 +57,31 @@ namespace WMP_A05
         {
             string address = "140.0.0.1";
             Int32 port = 15000;
-            connectToHost(address, port);
+            chatClient = new TcpClient(address, port);    // connect to the server
+            try    // make sure that the connection succeeded
+            { 
+                // we want to set up a thread to wait for a return message
+                ThreadStart waitThread = new ThreadStart(messageWait);
+                serverMessage = new Thread(waitThread);
+                serverMessage.Start();      // start a thread that waits for an incoming message
 
-            // we want to set up a thread to wait for a return message
-            ParameterizedThreadStart waitThread = new ParameterizedThreadStart(messageWait);
-            serverMessage = new Thread(waitThread);
-            serverMessage.Start(chatClient);
+                // change the color of the connected ellipse
+                SolidColorBrush connectColor = new SolidColorBrush();
+                connectColor.Color = Color.FromRgb(0, 255, 0);
+                connectedElipse.Fill = connectColor;
+
+                connectButton.IsEnabled = false;        // disable the connect button
+                disconnectButton.IsEnabled = true;      // enable the disconnect button
+                sendButton.IsEnabled = true;            // enable the send button 
+            }
+            catch(SocketException e)
+            {
+                connectionError.Text = "There was an error connecting to the server";
+            }
+            catch(ArgumentNullException n)
+            {
+                connectionError.Text = "There was an error connecting to the server";
+            }
         }
         /*
          * Function : disconnect_Button()
@@ -71,29 +91,28 @@ namespace WMP_A05
          */
         public void disconnect_Button(object sender, RoutedEventArgs arg)
         {
+            SolidColorBrush connectColor = new SolidColorBrush();
+            connectColor.Color = Color.FromRgb(255, 0, 0);
+            connectedElipse.Fill = connectColor;
 
+            ChatClient.Close();     // close the connection to the server
+            connectionError.Text = "Disconnected from the server";
         }
 
-        public static void messageWait(object o)
-        {
-            TcpClient server = (TcpClient)o;    
+        public static void messageWait()
+        {   
             Byte[] bytes = new byte[256];       // bytes will be used to read data
             String data = null;                 // this string will be used to read data
 
             data = null;
 
-            NetworkStream serverStream = server.GetStream();      // used to recieve message
+            NetworkStream serverStream = chatClient.GetStream();      // used to recieve message
             int i;
 
             while ((i = serverStream.Read(bytes, 0, bytes.Length)) != 0) // iterate through read stream
             {
                 data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
             }
-        }
-
-        public static void connectToHost(string IP, int portNum)
-        {
-            chatClient = new TcpClient(IP, portNum);
         }
     }
 }
