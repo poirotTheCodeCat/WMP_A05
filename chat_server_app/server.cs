@@ -12,9 +12,10 @@ namespace chat_server
 {
     class Program
     {
-        int hello;
-        private static Dictionary<IPAddress, TcpClient> clientList = new Dictionary<IPAddress, TcpClient>();       // keeps track of the clients that are connected
-        private static Dictionary<IPAddress, Thread> threadList = new Dictionary<IPAddress, Thread>();             // keeps track of the threads running
+
+        private static List<TcpClient> clientList = new List<TcpClient>();          // keeps track of the clients that are connected
+        private static List<Thread> threadList = new List<Thread>();                // keeps track of the threads running
+
 
         static void Main(string[] args)
         {
@@ -23,7 +24,7 @@ namespace chat_server
             {
                 // set up the tcpListener on port15000
                 Int32 port = 15000;
-                IPAddress localIP = IPAddress.Parse("140.0.0.1");
+                IPAddress localIP = IPAddress.Parse("127.0.0.1");
 
                 IPEndPoint clientIP;            // used to store the user's IP Address
 
@@ -40,8 +41,8 @@ namespace chat_server
 
                     clientIP = client.Client.LocalEndPoint as IPEndPoint;       // get the client's IP address
 
-                    clientList.Add(clientIP.Address, client);       // add the client to the clientList
-                    threadList.Add(clientIP.Address, waitThread);   // add the thread to the threadList
+                    clientList.Add(client);       // add the client to the clientList
+                    threadList.Add(waitThread);   // add the thread to the threadList
 
                     waitThread.Start(client);     // start the thread
                 }
@@ -78,9 +79,9 @@ namespace chat_server
             while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 ) // iterate through read stream
             {
                 data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
+                Console.WriteLine("{0}", data);
             }
-            Console.WriteLine("{0}", data);
-            // sendMessages(client, data);
+            sendMessages(client, data);
         }
 
         /*
@@ -93,18 +94,24 @@ namespace chat_server
         {
             TcpClient client = (TcpClient)c;
             IPEndPoint currentClient = client.Client.LocalEndPoint as IPEndPoint;
+            IPEndPoint checkIP;
 
-            IPAddress clientIP = currentClient.Address;
-            byte[] sendBytes = System.Text.Encoding.ASCII.GetBytes(message);
+            IPAddress clientIP = currentClient.Address;                         // get the current client's IP Address
+            byte[] sendBytes = System.Text.Encoding.ASCII.GetBytes(message);    // convert message into bytes
 
             NetworkStream sendStream; 
-            foreach (KeyValuePair<IPAddress, TcpClient> tcpSend in clientList)
+            foreach (TcpClient tcpSend in clientList)                        // cycle through the clientList to send the current message
             {
-                sendStream = tcpSend.Value.GetStream();
-                sendStream.Write(sendBytes, 0, sendBytes.Length);       // send the message to all connected clients
-                Console.WriteLine("Send {0} to {1} \n", message, tcpSend.Key.ToString());   
+                checkIP = tcpSend.Client.LocalEndPoint as IPEndPoint;   
+                if (!(checkIP.Address == clientIP))                         // dont send back to sender
+                {
+                    sendStream = tcpSend.GetStream();                       // connect to a stream to send message
+                    sendStream.Write(sendBytes, 0, sendBytes.Length);       // send the message to all connected clients
+                    Console.WriteLine("Send {0} to {1} \n", message, tcpSend.ToString());
+                }
             }
         }
+
 
         /*
          * Function : stopAllClients()
@@ -114,11 +121,12 @@ namespace chat_server
          */
         static void stopAllClients()
         {
-            foreach (KeyValuePair<IPAddress, TcpClient> tcpSend in clientList)
+            foreach (TcpClient tcpSend in clientList)
             {
-                tcpSend.Value.Close();
+                tcpSend.Close();
             }
-            
+            threadList.Clear();
+            clientList.Clear();
         }
     }
 }
