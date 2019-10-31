@@ -22,12 +22,12 @@ namespace WMP_A05
     public partial class messenger : Window
     {
         private static string user;
-        private static TcpClient client;
+        private static TcpClient chatClient;
 
-        public TcpClient Client         // accessor and modifier of client data member
+        public TcpClient ChatClient         // accessor and modifier of client data member
         {
-            get { return client; }
-            set { client = value; }
+            get { return chatClient; }
+            set { chatClient = value; }
         }
 
         public string User                 // accessor and modifier of user data member
@@ -38,10 +38,7 @@ namespace WMP_A05
         public messenger()
         {
             InitializeComponent();
-            string address = "140.0.0.1";
-            Int32 port = 15000;
 
-            connectToHost(address, port);
         }
 
         public void Send_Click(object sender, RoutedEventArgs arg)
@@ -57,7 +54,9 @@ namespace WMP_A05
          */
         public void connect_Button(object sender, RoutedEventArgs arg)
         {
-
+            string address = "140.0.0.1";
+            Int32 port = 15000;
+            connectToHost(address, port);
         }
         /*
          * Function : disconnect_Button()
@@ -70,14 +69,14 @@ namespace WMP_A05
 
         }
 
-        public void waitForMessage()
+        public static void waitForMessage()
         {
 
         }
 
         public static void connectToHost(string IP, int portNum)
         {
-
+            chatClient = new TcpClient(IP, portNum);
         }
     }
 }
