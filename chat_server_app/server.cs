@@ -52,18 +52,73 @@ namespace chat_server
             }
             finally
             {
+                stopAllClients();       // close all clients
                 server.Stop();
             }
         }
 
-        static void waitForMessage(object o)
+        /*
+         * Function : waitForMessage()
+         * Parameters : object o
+         * Description : This waits for a client to send a message and calls upon another function to send 
+         *              that message to all other connected users
+         * Returns : Nothing
+         */
+        public static void waitForMessage(object o)
         {
+            TcpClient client = (TcpClient)o;
+            Byte[] bytes = new byte[256];       // bytes will be used to read data
+            String data = null;                 // this string will be used to read data
+
+            data = null;
+
+            NetworkStream stream = client.GetStream();      // used to recieve message
+            int i;
+
+            while ((i = stream.Read(bytes, 0, bytes.Length)) != 0 ) // iterate through read stream
+            {
+                data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
+                sendMessages(client, data);
+            }
 
         }
 
-        static void sendMessages()
+        /*
+         * Function : sendMessage()
+         * Parameters : object c, string message
+         * Description : This function sends the message to all connected clients
+         * Returns : nothing
+         */
+        static void sendMessages(object c, string message)
         {
+            TcpClient client = (TcpClient)c;
+            IPEndPoint currentClient = client.Client.LocalEndPoint as IPEndPoint;
 
+            IPAddress clientIP = currentClient.Address;
+            byte[] sendBytes = System.Text.Encoding.ASCII.GetBytes(message);
+
+            NetworkStream sendStream; 
+            foreach (KeyValuePair<IPAddress, TcpClient> tcpSend in clientList)
+            {
+                sendStream = tcpSend.Value.GetStream();
+                sendStream.Write(sendBytes, 0, sendBytes.Length);       // send the message to all connected clients
+                Console.WriteLine("Send {0} to {1} \n", message, tcpSend.Key.ToString());   
+            }
+        }
+
+        /*
+         * Function : stopAllClients()
+         * Parameters : none
+         * Description : This closes all of the connections to the clients and empties the dictionaries
+         * Returns : nothing
+         */
+        static void stopAllClients()
+        {
+            foreach (KeyValuePair<IPAddress, TcpClient> tcpSend in clientList)
+            {
+                tcpSend.Value.Close();
+            }
+            
         }
     }
 }
