@@ -43,7 +43,7 @@ namespace chat_server
                     clientList.Add(clientIP.Address, client);       // add the client to the clientList
                     threadList.Add(clientIP.Address, waitThread);   // add the thread to the threadList
 
-                    waitThread.Start();     // start the thread
+                    waitThread.Start(client);     // start the thread
                 }
             }
             catch (SocketException e)

@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Net.Sockets;
-
+using System.Threading;
 
 namespace WMP_A05
 {
@@ -23,6 +23,7 @@ namespace WMP_A05
     {
         private static string user;
         private static TcpClient chatClient;
+        private static Thread serverMessage;
 
         public TcpClient ChatClient         // accessor and modifier of client data member
         {
@@ -38,7 +39,6 @@ namespace WMP_A05
         public messenger()
         {
             InitializeComponent();
-
         }
 
         public void Send_Click(object sender, RoutedEventArgs arg)
@@ -57,6 +57,11 @@ namespace WMP_A05
             string address = "140.0.0.1";
             Int32 port = 15000;
             connectToHost(address, port);
+
+            // we want to set up a thread to wait for a return message
+            ParameterizedThreadStart waitThread = new ParameterizedThreadStart(messageWait);
+            serverMessage = new Thread(waitThread);
+            serverMessage.Start(chatClient);
         }
         /*
          * Function : disconnect_Button()
@@ -69,9 +74,21 @@ namespace WMP_A05
 
         }
 
-        public static void waitForMessage()
+        public static void messageWait(object o)
         {
+            TcpClient server = (TcpClient)o;    
+            Byte[] bytes = new byte[256];       // bytes will be used to read data
+            String data = null;                 // this string will be used to read data
 
+            data = null;
+
+            NetworkStream serverStream = server.GetStream();      // used to recieve message
+            int i;
+
+            while ((i = serverStream.Read(bytes, 0, bytes.Length)) != 0) // iterate through read stream
+            {
+                data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
+            }
         }
 
         public static void connectToHost(string IP, int portNum)
