@@ -21,8 +21,8 @@ namespace WMP_A05
     /// </summary>
     public partial class messenger : Window
     {
-        private string user;
-        private TcpClient client;
+        private static string user;
+        private static TcpClient client;
 
         public TcpClient Client         // accessor and modifier of client data member
         {
@@ -38,6 +38,10 @@ namespace WMP_A05
         public messenger()
         {
             InitializeComponent();
+            string address = "140.0.0.1";
+            Int32 port = 15000;
+
+            connectToHost(address, port);
         }
 
         public void Send_Click(object sender, RoutedEventArgs arg)
@@ -67,6 +71,11 @@ namespace WMP_A05
         }
 
         public void waitForMessage()
+        {
+
+        }
+
+        public static void connectToHost(string IP, int portNum)
         {
 
         }
