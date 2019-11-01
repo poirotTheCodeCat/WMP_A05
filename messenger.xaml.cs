@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*
+ * File: messenger.xaml.cs
+ * Programmer : Daniel Grew and Sasha Malesevic
+ * Date Last Modified : 2019-11-01
+ * Description: This contains the logic for the messenger window which will send and recieve messages from a server 
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -58,16 +64,16 @@ namespace WMP_A05
             string messageSend = User + ": " + message;
             if (message.Length <= 250)
             {
-                ChatStream = chatClient.GetStream();
+                ChatStream = chatClient.GetStream();        // connect to stream
                 Byte[] sendBytes = new Byte[256];
 
                 sendBytes = System.Text.Encoding.ASCII.GetBytes(messageSend);
-                ChatStream.Write(sendBytes, 0, sendBytes.Length);
+                ChatStream.Write(sendBytes, 0, sendBytes.Length);       // send message
 
                 chatText.Text = "";
                 string chatMessage = "me: " + message;
                 // create a listBox item
-                chatBox.Items.Add(chatMessage);
+                chatBox.Items.Add(chatMessage);         // add chat to screen
 
                 chatStream.Flush();
             }
@@ -159,7 +165,7 @@ namespace WMP_A05
                     //chatBox.Items.Add(message)
                     this.Dispatcher.Invoke(() =>
                     {
-                        this.chatBox.Items.Add(message);
+                        this.chatBox.Items.Add(message);        // write recieved message to screen
                     });
                 }
             }

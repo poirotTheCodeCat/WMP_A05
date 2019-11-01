@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * File: server.cs
+ * Programmer : Daniel Grew and Sasha Malesevic
+ * Date Last Modified : 2019-11-01
+ * Description: This file contains the logic for a server which connects to multiple clients to recieve a message and send that message
+ * to all of the other clients
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

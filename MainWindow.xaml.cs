@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * File: MainWindow.xaml.cs
+ * Programmer : Daniel Grew and Sasha Malesevic
+ * Date Last Modified : 2019-11-01
+ * Description: This is the login window which asks the user for their username and conducts basic validation of the username.
+ *              the window then opens the chat window and closes itself
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +43,7 @@ namespace WMP_A05
 
         public void submit_Click(object sender, RoutedEventArgs arg)
         {
-            user = username.Text;
+            user = username.Text;       // validate
             if(user.Trim() == "")
             {
                 errorUsername.Text = "please enter a username ";
@@ -46,11 +53,6 @@ namespace WMP_A05
             newMessenger.User = user;
             newMessenger.Show();
             this.Close();
-        }
-
-        public void waitForMessage()
-        {
-
         }
 
     }
