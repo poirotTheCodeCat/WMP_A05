@@ -68,6 +68,8 @@ namespace WMP_A05
                 string chatMessage = "me: " + message;
                 // create a listBox item
                 chatBox.Items.Add(chatMessage);
+
+                chatStream.Flush();
             }
             else
             {
@@ -160,7 +162,7 @@ namespace WMP_A05
                         this.chatBox.Items.Add(message);
                     });
                 }
-                catch(NullReferenceException e)
+                catch (NullReferenceException e)
                 {
                     connectionError.Text = "Unable to read incoming messages";
                 }
