@@ -153,6 +153,12 @@ namespace WMP_A05
                 {
                     string message = String.Empty;
                     chatStream.Read(bytes, 0, bytes.Length);
+                    message = System.Text.Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+                    //chatBox.Items.Add(message)
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.chatBox.Items.Add(message);
+                    });
                 }
                 catch(NullReferenceException e)
                 {
