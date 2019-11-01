@@ -92,9 +92,10 @@ namespace WMP_A05
 
             try    // make sure that the connection succeeded
             {
+                chatBox.Items.Clear();
                 chatClient = new TcpClient(address, port);    // connect to the server
                 chatStream = chatClient.GetStream();
-
+                chatBox.Items.Add("- Connected to the server -");      // inform the user that they are disconnected 
                 // change the color of the connected ellipse
                 SolidColorBrush connectColor = new SolidColorBrush();
                 connectColor.Color = Color.FromRgb(0, 255, 0);
@@ -111,11 +112,11 @@ namespace WMP_A05
             }
             catch (SocketException e)
             {
-                connectionError.Text = "There was an error connecting to the server";
+                chatBox.Items.Add("Socket Exception was thrown: "+ e); 
             }
             catch (ArgumentNullException n)
             {
-                connectionError.Text = "There was an error connecting to the server";
+                chatBox.Items.Add("Argument Null Exception was thrown: " + n);
             }
         }
         /*
@@ -126,14 +127,13 @@ namespace WMP_A05
          */
         public void disconnect_Button(object sender, RoutedEventArgs arg)
         {
+            chatBox.Items.Clear();
             isConnected = false;
             SolidColorBrush connectColor = new SolidColorBrush();
-            connectColor.Color = Color.FromRgb(255, 0, 0);
+            connectColor.Color = Color.FromRgb(255, 0, 0);          // change the connection button color to indicate status of connection
             connectedElipse.Fill = connectColor;
 
-            ChatClient.Close();     // close the connection to the server
-            chatStream.Close();
-            connectionError.Text = "Disconnected from the server";      // inform the user that they are disconnected 
+            chatBox.Items.Add("Disconnected from the server");      // inform the user that they are disconnected 
 
             connectButton.IsEnabled = true;        // enable the connect button
             disconnectButton.IsEnabled = false;      // disable the disconnect button
@@ -148,13 +148,13 @@ namespace WMP_A05
          */
         public void messageWait()
         {
-            while (isConnected)
+            int i = 0;
+            Byte[] bytes = new byte[256];
+            try
             {
-                Byte[] bytes = new byte[256];
-                try
+                string message = String.Empty;
+                while ((i = chatStream.Read(bytes, 0, bytes.Length)) != 0)      // attempt to read incoming messages - 0 when disconnected
                 {
-                    string message = String.Empty;
-                    chatStream.Read(bytes, 0, bytes.Length);
                     message = System.Text.Encoding.ASCII.GetString(bytes, 0, bytes.Length);
                     //chatBox.Items.Add(message)
                     this.Dispatcher.Invoke(() =>
@@ -162,12 +162,22 @@ namespace WMP_A05
                         this.chatBox.Items.Add(message);
                     });
                 }
-                catch (NullReferenceException e)
-                {
-                    connectionError.Text = "Unable to read incoming messages";
-                }
             }
-
+            catch( SocketException s )
+            {
+                connectionError.Text = "The client has been disconnected from the server";
+            }
+            catch (NullReferenceException e)
+            {
+                connectionError.Text = "Unable to read incoming messages";
+            }
+            finally
+            {
+                chatStream.Close();     // close the stream
+                ChatClient.Close();     // close the connection to the server   
+            }
         }
+
+        
     }
 }
