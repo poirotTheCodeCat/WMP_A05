@@ -24,9 +24,16 @@ namespace WMP_A05
 
         private static string user;
         private static TcpClient chatClient;
+        private static NetworkStream chatStream;
         private static Thread serverMessage;
         private static bool isConnected;
 
+
+        public NetworkStream ChatStream
+        {
+            get { return chatStream; }
+            set { chatStream = value; }
+        }
         public TcpClient ChatClient         // accessor and modifier of client data member
         {
             get { return chatClient; }
@@ -42,25 +49,21 @@ namespace WMP_A05
         {
             InitializeComponent();
 
-            // we want to set up a thread to wait for a return message
-            ThreadStart waitThread = new ThreadStart(messageWait);
-            serverMessage = new Thread(waitThread);
-            serverMessage.Start();      // start a thread that waits for an incoming message
-
             isConnected = false;        // the client is not connected yet, so we initialize this to false
         }
 
         public void Send_Click(object sender, RoutedEventArgs arg)
         {
             string message = chatText.Text;
-            string messageSend = message + " :" + User;
-            if(message.Length <= 250)
+            string messageSend = User + ": " + message;
+            if (message.Length <= 250)
             {
-                NetworkStream sendToServer = chatClient.GetStream();
+                ChatStream = chatClient.GetStream();
                 Byte[] sendBytes = new Byte[256];
 
                 sendBytes = System.Text.Encoding.ASCII.GetBytes(messageSend);
-                sendToServer.Write(sendBytes, 0, sendBytes.Length);
+                ChatStream.Write(sendBytes, 0, sendBytes.Length);
+
                 chatText.Text = "";
                 string chatMessage = "me: " + message;
                 // create a listBox item
@@ -80,22 +83,15 @@ namespace WMP_A05
          */
         public void connect_Button(object sender, RoutedEventArgs arg)
         {
-            try
-            {
-                serverMessage.Interrupt();
-            }
-            catch(ThreadInterruptedException)
-            {
-                connectionError.Text = "Trouble reconnecting";
-                return;
-            }
+            connectionError.Text = "";
             isConnected = true;
             string address = "127.0.0.1";
             Int32 port = 15000;
-      
+
             try    // make sure that the connection succeeded
             {
                 chatClient = new TcpClient(address, port);    // connect to the server
+                chatStream = chatClient.GetStream();
 
                 // change the color of the connected ellipse
                 SolidColorBrush connectColor = new SolidColorBrush();
@@ -105,12 +101,17 @@ namespace WMP_A05
                 connectButton.IsEnabled = false;        // disable the connect button
                 disconnectButton.IsEnabled = true;      // enable the disconnect button
                 sendButton.IsEnabled = true;            // enable the send button 
+
+                // we want to set up a thread to wait for a return message
+                ThreadStart waitThread = new ThreadStart(messageWait);
+                serverMessage = new Thread(waitThread);
+                serverMessage.Start();      // start a thread that waits for an incoming message
             }
-            catch(SocketException e)
+            catch (SocketException e)
             {
                 connectionError.Text = "There was an error connecting to the server";
             }
-            catch(ArgumentNullException n)
+            catch (ArgumentNullException n)
             {
                 connectionError.Text = "There was an error connecting to the server";
             }
@@ -129,6 +130,7 @@ namespace WMP_A05
             connectedElipse.Fill = connectColor;
 
             ChatClient.Close();     // close the connection to the server
+            chatStream.Close();
             connectionError.Text = "Disconnected from the server";      // inform the user that they are disconnected 
 
             connectButton.IsEnabled = true;        // enable the connect button
@@ -144,34 +146,20 @@ namespace WMP_A05
          */
         public void messageWait()
         {
-
-            Byte[] bytes = new byte[256];       // bytes will be used to read data
-            String data = null;                 // this string will be used to read data
-            if (!isConnected)
+            while (isConnected)
             {
+                Byte[] bytes = new byte[256];
                 try
                 {
-                    Thread.Sleep(Timeout.Infinite);
+                    string message = String.Empty;
+                    chatStream.Read(bytes, 0, bytes.Length);
                 }
-                catch (ThreadInterruptedException te)
+                catch(NullReferenceException e)
                 {
-                    return;
+                    connectionError.Text = "Unable to read incoming messages";
                 }
             }
-            else
-            {
-                NetworkStream serverStream = chatClient.GetStream();      // used to recieve message
-                int i;
 
-                while ((i = serverStream.Read(bytes, 0, bytes.Length)) != 0) // iterate through read stream
-                {
-                    data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);   // convert bytes recieved to a string
-                }
-
-                chatBox.Items.Add(data);
-
-            }
         }
-        
     }
 }
